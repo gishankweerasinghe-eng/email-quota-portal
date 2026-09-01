@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Email Quota Portal - The Ceylon Chamber of Commerce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Modern Fluid Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .row-animate { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Badge Colors */
+        .status-Pending { color: #b45309; background: #fef3c7; border: 1px solid #fde68a; }
+        .status-Approved { color: #047857; background: #d1fae5; border: 1px solid #a7f3d0; }
+        .status-Rejected { color: #be123c; background: #ffe4e6; border: 1px solid #fecdd3; }
+
+        /* Sleek Scrollbar */
+        ::-webkit-scrollbar { height: 6px; width: 6px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Smooth scrolling for mobile tables */
+        .table-container { -webkit-overflow-scrolling: touch; }
+    </style>
+</head>
+<!-- Added lg:h-screen lg:overflow-hidden to force one-page fit on desktop -->
+<body class="bg-slate-50 min-h-screen lg:h-screen flex flex-col font-sans text-slate-800 antialiased lg:overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
+    
+    <div class="max-w-7xl mx-auto w-full p-4 lg:p-5 flex flex-col flex-grow gap-4 lg:overflow-hidden">
+        
+        <!-- Compact Branded Header -->
+        <header class="flex flex-col sm:flex-row items-center justify-center sm:justify-between py-2 animate-fade-up flex-shrink-0 gap-4">
+            <img src="https://www.chamber.lk/wp-content/uploads/2024/09/ccc-logo-lg.jpg" alt="The Ceylon Chamber of Commerce Logo" class="h-14 sm:h-16 object-contain drop-shadow-sm hover:scale-105 transition-transform duration-500">
+            <div class="text-center sm:text-right">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mb-1">
+                    Email Quota <span class="text-indigo-600">Portal</span>
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-500 font-medium tracking-wide">Daily Limit: 22,000 &bull; Pool: 15,000</p>
+            </div>
+        </header>
+
+        <!-- 4 Stat Cards in a row for separation -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 flex-shrink-0">
+            <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-100 animate-fade-up stagger-1">
+                <h3 class="text-slate-500 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">Total Pool</h3>
+                <p class="text-2xl sm:text-3xl font-black text-slate-800">15,000</p>
+            </div>
+            
+            <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-amber-100 ring-1 ring-amber-50 animate-fade-up stagger-1">
+                <h3 class="text-amber-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">Reserved (Pending)</h3>
+                <p class="text-2xl sm:text-3xl font-black text-amber-500" id="reservedQuota">
+                    <span class="animate-pulse bg-amber-100 text-transparent rounded w-16 inline-block">000</span>
+                </p>
+            </div>
+
+            <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-emerald-100 ring-1 ring-emerald-50 animate-fade-up stagger-2">
+                <h3 class="text-emerald-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">Approved (Allocated)</h3>
+                <p class="text-2xl sm:text-3xl font-black text-emerald-500" id="approvedQuota">
+                    <span class="animate-pulse bg-emerald-100 text-transparent rounded w-16 inline-block">000</span>
+                </p>
+            </div>
+            
+            <div class="bg-white p-3 sm:p-4 rounded-xl shadow-md border border-indigo-100 ring-1 ring-indigo-500/10 animate-fade-up stagger-3">
+                <h3 class="text-indigo-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">Available</h3>
+                <p class="text-2xl sm:text-3xl font-black text-indigo-500" id="availableQuota">
+                    <span class="animate-pulse bg-indigo-100 text-transparent rounded w-16 inline-block">000</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Content Area (Form & Table) -->
+        <!-- min-h-0 is required for flex children to scroll properly on desktop -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-grow min-h-0">
+            
+            <!-- Booking Form -->
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col lg:col-span-1 overflow-y-auto animate-fade-up stagger-2">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-3 flex-shrink-0">Request Email Quota</h2>
+                
+                <form id="bookingForm" class="space-y-3 sm:space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Your Name</label>
+                        <input type="text" id="name" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Sending Email Adress</label>
+                        <input type="email" id="email" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Campaign / Event Name</label>
+                        <input type="text" id="campaign" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Required Emails (Qty)</label>
+                        <input type="number" id="amount" required min="1" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                    </div>
+                    
+                    <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-md transition-all mt-2 text-sm">
+                        Reserve Quota
+                    </button>
+                    <p id="formMessage" class="text-xs text-center hidden font-medium"></p>
+                </form>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col min-h-[300px] animate-fade-up stagger-3">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-3 flex-shrink-0">Live Ledger & Approvals</h2>
+                
+                <!-- Internal scrollable table wrapper -->
+                <div class="overflow-auto table-container rounded-lg border border-slate-200 flex-grow">
+                    <table class="w-full text-left border-collapse bg-white min-w-[600px]">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                            <tr class="text-slate-500 text-[10px] sm:text-xs uppercase tracking-wider font-bold">
+                                <th class="py-2.5 px-3 sm:px-4 whitespace-nowrap">Date</th>
+                                <th class="py-2.5 px-3 sm:px-4 whitespace-nowrap">Name</th>
+                                <th class="py-2.5 px-3 sm:px-4 whitespace-nowrap">Campaign</th>
+                                <th class="py-2.5 px-3 sm:px-4 whitespace-nowrap">Requested</th>
+                                <th class="py-2.5 px-3 sm:px-4 whitespace-nowrap">Allocated By Admin</th>
+                                <th class="py-2.5 px-3 sm:px-4 whitespace-nowrap">Status</th>
+                                <th class="py-2.5 px-3 sm:px-4 whitespace-nowrap">Admin Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestTable" class="text-sm divide-y divide-slate-100">
+                            <!-- Skeletons will load here first -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Disclaimer Footer -->
+        <footer class="flex-shrink-0 text-center py-3 text-slate-400 text-xs mt-auto font-medium">
+            Gishan Weerasinghe | ICT division @2026 The Ceylon Chamber of Commerce
+        </footer>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwmQWKXrfrFdwY4yRWpVCauyPGQQj77SMb6uasj6DjGPPIKFu4ZxQmUCm9MM7BzX8lQ/exec";
+
+        function showSkeletons() {
+            const tbody = document.getElementById('requestTable');
+            let skeletonHTML = '';
+            for(let i=0; i<6; i++) {
+                skeletonHTML += `
+                <tr class="animate-pulse">
+                    <td class="py-3 px-3 sm:px-4"><div class="h-3 bg-slate-200 rounded w-16"></div></td>
+                    <td class="py-3 px-3 sm:px-4"><div class="h-3 bg-slate-200 rounded w-20"></div></td>
+                    <td class="py-3 px-3 sm:px-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td>
+                    <td class="py-3 px-3 sm:px-4"><div class="h-3 bg-slate-200 rounded w-10"></div></td>
+                    <td class="py-3 px-3 sm:px-4"><div class="h-3 bg-slate-200 rounded w-12"></div></td>
+                    <td class="py-3 px-3 sm:px-4"><div class="h-5 bg-slate-200 rounded-full w-14"></div></td>
+                    <td class="py-3 px-3 sm:px-4"><div class="h-3 bg-slate-200 rounded w-24"></div></td>
+                </tr>`;
+            }
+            tbody.innerHTML = skeletonHTML;
+        }
+
+        async function loadData() {
+            showSkeletons(); 
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                // 1. Calculate Custom Stats on Frontend
+                let approvedCount = 0;
+                let reservedCount = 0;
+                
+                data.requests.forEach(req => {
+                    if (req.status === 'Approved') {
+                        approvedCount += req.allocated;
+                    } else if (req.status === 'Pending') {
+                        reservedCount += req.requested;
+                    }
+                });
+
+                const poolLimit = 15000;
+                const availableCount = poolLimit - (approvedCount + reservedCount);
+                
+                // 2. Update UI Cards
+                document.getElementById('approvedQuota').innerText = approvedCount.toLocaleString();
+                document.getElementById('reservedQuota').innerText = reservedCount.toLocaleString();
+                document.getElementById('availableQuota').innerText = availableCount.toLocaleString();
+
+                // 3. Form Lockout Logic
+                const formInputs = document.querySelectorAll('#bookingForm input');
+                const submitBtn = document.getElementById('submitBtn');
+                const formMsg = document.getElementById('formMessage');
+
+                if (availableCount <= 0) {
+                    formInputs.forEach(input => {
+                        input.disabled = true;
+                        input.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                    });
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Daily Quota Reached";
+                    submitBtn.classList.replace('bg-indigo-600', 'bg-slate-400');
+                    submitBtn.classList.replace('hover:bg-indigo-700', 'hover:bg-slate-400');
+                    submitBtn.classList.replace('shadow-md', 'shadow-none');
+                    submitBtn.classList.add('cursor-not-allowed');
+                    
+                    formMsg.innerText = "The 15,000 daily quota limit has been fully reached.";
+                    formMsg.className = "text-xs text-center text-red-600 block mt-2 font-bold p-2 bg-red-50 rounded border border-red-100";
+                }
+                
+                // 4. Render Table
+                const tbody = document.getElementById('requestTable');
+                tbody.innerHTML = '';
+                
+                if (data.requests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-400 font-medium text-sm">No booking requests found.</td></tr>';
+                    return;
+                }
+
+                data.requests.forEach((req, index) => {
+                    const isMobile = window.innerWidth < 640;
+                    const dateOptions = isMobile 
+                        ? { month: 'short', day: 'numeric' } 
+                        : { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+                    
+                    const dateStr = new Date(req.date).toLocaleDateString(undefined, dateOptions);
+                    const tr = document.createElement('tr');
+                    
+                    tr.className = "hover:bg-slate-50 transition-colors row-animate";
+                    tr.style.animationDelay = `${index * 0.03}s`;
+                    tr.style.opacity = "0"; 
+                    
+                    let displayAllocated = "";
+                    let allocatedClass = "";
+                    
+                    if (req.status === "Pending") {
+                        displayAllocated = '<span class="text-slate-400 italic text-[10px] sm:text-xs">Pending</span>';
+                    } else if (req.status === "Rejected") {
+                        displayAllocated = "0";
+                        allocatedClass = "text-red-500 font-bold";
+                    } else {
+                        displayAllocated = req.allocated.toLocaleString();
+                        if (req.requested !== req.allocated) {
+                            allocatedClass = "text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded";
+                        } else {
+                            allocatedClass = "text-emerald-600 font-bold";
+                        }
+                    }
+
+                    const commentDisplay = req.comment ? `<span class="text-slate-700">${req.comment}</span>` : '<span class="text-slate-300 italic">-</span>';
+
+                    tr.innerHTML = `
+                        <td class="py-3 px-3 sm:px-4 text-slate-500 whitespace-nowrap text-[10px] sm:text-xs">${dateStr}</td>
+                        <td class="py-3 px-3 sm:px-4 text-slate-800 font-semibold whitespace-nowrap text-xs sm:text-sm">${req.name}</td>
+                        <td class="py-3 px-3 sm:px-4 text-slate-500 whitespace-nowrap text-xs sm:text-sm">${req.campaign}</td>
+                        <td class="py-3 px-3 sm:px-4 text-slate-500 font-mono whitespace-nowrap text-xs sm:text-sm">${req.requested.toLocaleString()}</td>
+                        <td class="py-3 px-3 sm:px-4 whitespace-nowrap text-xs sm:text-sm"><span class="${allocatedClass}">${displayAllocated}</span></td>
+                        <td class="py-3 px-3 sm:px-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-[10px] font-bold shadow-sm status-${req.status}">${req.status}</span>
+                        </td>
+                        <td class="py-3 px-3 sm:px-4 text-xs max-w-[150px] sm:max-w-xs truncate" title="${req.comment}">
+                            ${commentDisplay}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Error loading data", error);
+                document.getElementById('requestTable').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-400 font-medium text-xs">Failed to load data. Please refresh.</td></tr>';
+            }
+        }
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('formMessage');
+            
+            const requested = parseInt(document.getElementById('amount').value);
+            const availableStr = document.getElementById('availableQuota').innerText.replace(/,/g, '');
+            const available = parseInt(availableStr);
+            
+            if(requested > available) {
+                msg.innerText = "Error: Not enough quota available!";
+                msg.className = "text-xs sm:text-sm text-center text-red-600 block mt-2 font-bold bg-red-50 p-2 rounded";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-4 w-4 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                campaign: document.getElementById('campaign').value,
+                amount: requested
+            };
+
+            try {
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                
+                msg.innerText = "Reserved successfully!";
+                msg.className = "text-xs text-center text-emerald-600 block mt-2 font-bold bg-emerald-50 p-2 rounded border border-emerald-200";
+                document.getElementById('bookingForm').reset();
+                setTimeout(loadData, 1000); 
+            } catch (error) {
+                msg.innerText = "Request sent. Refresh to verify.";
+                msg.className = "text-xs text-center text-amber-600 block mt-2 font-bold bg-amber-50 p-2 rounded";
+            }
+            
+            setTimeout(() => {
+                // Only re-enable the button if we didn't just hit the limit
+                const newAvailable = available - requested;
+                if(newAvailable > 0) {
+                    btn.disabled = false;
+                    btn.innerText = "Reserve Quota";
+                    msg.className = "hidden";
+                }
+            }, 3000);
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
