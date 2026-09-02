@@ -74,7 +74,7 @@
             </div>
             
             <div class="bg-white p-3 sm:p-4 rounded-xl shadow-md border border-indigo-100 ring-1 ring-indigo-500/10 animate-fade-up stagger-3">
-                <h3 class="text-indigo-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">Available (After IT Approved)</h3>
+                <h3 class="text-indigo-600 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">Available (15k - Approved)</h3>
                 <p class="text-2xl sm:text-3xl font-black text-indigo-500" id="availableQuota">
                     <span class="animate-pulse bg-indigo-100 text-transparent rounded w-16 inline-block">000</span>
                 </p>
@@ -145,7 +145,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwmQWKXrfrFdwY4yRWpVCauyPGQQj77SMb6uasj6DjGPPIKFu4ZxQmUCm9MM7BzX8lQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyWW-WSc_BchpaWoYwBE7sPH9MIcTOxP8LKRk3RUbSN8bZBKJLJTmUYJxjwZXLY8gEk/exec";
 
         function showSkeletons() {
             const tbody = document.getElementById('requestTable');
@@ -183,15 +183,12 @@
                 });
 
                 const poolLimit = 15000;
-                // Available is strictly Total Pool minus Approved emails
                 const availableCount = poolLimit - approvedCount;
                 
-                // Update UI Cards
                 document.getElementById('approvedQuota').innerText = approvedCount.toLocaleString();
                 document.getElementById('reservedQuota').innerText = reservedCount.toLocaleString();
                 document.getElementById('availableQuota').innerText = availableCount.toLocaleString();
 
-                // Form Lockout Logic based on available limit reaching 0
                 const formInputs = document.querySelectorAll('#bookingForm input');
                 const submitBtn = document.getElementById('submitBtn');
                 const formMsg = document.getElementById('formMessage');
@@ -212,7 +209,6 @@
                     formMsg.className = "text-xs text-center text-red-600 block mt-2 font-bold p-2 bg-red-50 rounded border border-red-100";
                 }
                 
-                // Render Table
                 const tbody = document.getElementById('requestTable');
                 tbody.innerHTML = '';
                 
@@ -295,12 +291,12 @@
                 await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 
                 msg.innerText = "Reserved successfully!";
-                msg.className = "text-xs text-center text-emerald-600 block mt-2 font-bold bg-emerald-50 p-2 rounded border border-emerald-200";
+                msg.className = "text-xs sm:text-sm text-center text-emerald-600 block mt-2 font-bold bg-emerald-50 p-2 rounded border border-emerald-200";
                 document.getElementById('bookingForm').reset();
                 setTimeout(loadData, 1000); 
             } catch (error) {
                 msg.innerText = "Request sent. Refresh to verify.";
-                msg.className = "text-xs text-center text-amber-600 block mt-2 font-bold bg-amber-50 p-2 rounded";
+                msg.className = "text-xs sm:text-sm text-center text-amber-600 block mt-2 font-bold bg-amber-50 p-2 rounded";
             }
             
             setTimeout(() => {
